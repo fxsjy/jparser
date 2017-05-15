@@ -18,3 +18,6 @@ Usage Example:
         if x['type'] == 'image':
             print "[IMAGE]", x['data']['src']
     
+Demo:
+
+http://jparser.duapp.com/
