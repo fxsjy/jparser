@@ -5,7 +5,7 @@ class Region(object):
     def __init__(self, doc):
         self.doc = doc
         self.max_depth = 3
-        self.region_ratios = (0.6, 0.7, 0.9)
+        self.region_ratios = (0.6, 0.75, 1.0)
         self.min_sentence_len = 15
         self.window_size = 2
         self.candidates_count = 3
@@ -32,17 +32,19 @@ class Region(object):
             p1 = p1.getparent()
             depth +=1
         if depth > self.max_depth:
-            return k1.getparent()
+            return k1.getparent().getparent()
         return p1
 
     def locate(self):
         p_list = self.doc.xpath('//p/text()|//div/text()|//span/text()|//font/text()|//td/text()')
+        unimportant_texts = set(self.doc.xpath("//a/text()|//dd//text()|//blockquote//text()"))
         N_p = len(p_list)
         window_size = self.window_size
         for region_ratio in self.region_ratios:
             candidates  = [(len("".join([xx.strip() for xx in p_list[max(i-window_size,0):i+window_size]])), x,i ) 
                             for i,x in enumerate(p_list) if i < N_p * region_ratio 
-                             and len(x.strip()) > self.min_sentence_len ]
+                             and len(x.strip()) > self.min_sentence_len
+                             and x not in unimportant_texts]
             if len(candidates) >= self.candidates_count:
                 break
         top_list = heapq.nlargest(self.candidates_count, candidates)
