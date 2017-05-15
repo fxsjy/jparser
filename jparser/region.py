@@ -1,4 +1,5 @@
 import heapq
+import re
 
 class Region(object):
 
@@ -9,6 +10,7 @@ class Region(object):
         self.min_sentence_len = 15
         self.window_size = 2
         self.candidates_count = 3
+        self.stripper = re.compile(r'\s+')
 
     def find_common_parent(self, k1, k2):
         all_parent = []
@@ -43,7 +45,7 @@ class Region(object):
         for region_ratio in self.region_ratios:
             candidates  = [(len("".join([xx.strip() for xx in p_list[max(i-window_size,0):i+window_size]])), x,i ) 
                             for i,x in enumerate(p_list) if i < N_p * region_ratio 
-                             and len(x.strip()) > self.min_sentence_len
+                             and len(self.stripper.sub("",x)) > self.min_sentence_len
                              and x not in unimportant_texts]
             if len(candidates) >= self.candidates_count:
                 break
