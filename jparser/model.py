@@ -19,12 +19,23 @@ class PageModel(object):
         self.region = Region(self.doc)
 
     def extract_content(self, region):
-        items = region.xpath('//p/text()|//div/text()|//span/text()|//font/text()|//table|.//img')
+        items = region.xpath('//p/text()|//div/text()|//table|.//img')
+        tag_hist = {}
+        for item in items:
+            if  hasattr(item,'tag'):
+                continue
+            t = item.getparent().tag
+            if t not in tag_hist:
+                tag_hist[t] = 0
+            tag_hist[t] += len(item.strip())
+        winner_tag = None
+        if len(tag_hist) > 0:
+            winner_tag = max((c,k) for k,c in tag_hist.items())[1]
         contents = []
         for item in items:
             if not hasattr(item,'tag'):
                 txt = item.strip()
-                if len(txt) < 2:
+                if item.getparent().tag != winner_tag:
                     continue
                 contents.append({"type":"text","data":txt})
             elif item.tag == 'table':

@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <title>Preview</title>
+    </head>
+    <body>
+    <p>Dowload cost: {{download_cost}} seconds; Parser cost: {{extract_cost}}</p>
+    <textarea rows="10" cols="150">{{json_s}}</textarea>
+    <h1> {{title}}</h1>
+    {%for p in data %}
+        <p>
+        {%if p['type'] == 'image'%}
+            <img src="{{p['data']['src']}}">
+        {%endif%}
+        {%if p['type'] == 'text'%}
+            <p>{{p['data']}}</p>
+        {%endif%}
+        {%if p['type'] == 'html'%}
+            <p>{{p['data'] | safe}}</p>
+        {%endif%}
+
+        </p>
+    {%endfor%}
+    </body>
+</html>

@@ -1,5 +1,6 @@
 import heapq
 import re
+from math import log
 
 class Region(object):
 
@@ -38,12 +39,12 @@ class Region(object):
         return p1
 
     def locate(self):
-        p_list = self.doc.xpath('//p/text()|//div/text()|//span/text()|//font/text()|//td/text()')
+        p_list = self.doc.xpath('//p/text()|//div/text()|//td/text()')
         unimportant_texts = set(self.doc.xpath("//a/text()|//dd//text()|//blockquote//text()"))
         N_p = len(p_list)
         window_size = self.window_size
         for region_ratio in self.region_ratios:
-            candidates  = [(len("".join([xx.strip() for xx in p_list[max(i-window_size,0):i+window_size]])), x,i ) 
+            candidates  = [(len("".join([xx.strip() for xx in p_list[max(i-window_size,0):i+window_size]])) / log(i), x,i ) 
                             for i,x in enumerate(p_list) if i < N_p * region_ratio 
                              and len(self.stripper.sub("",x)) > self.min_sentence_len
                              and x not in unimportant_texts]
