@@ -1,5 +1,5 @@
 import os
 from .model import PageModel
 
-__VERSION__ = "0.0.8"
+__VERSION__ = "0.0.9"
 
