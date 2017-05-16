@@ -74,8 +74,8 @@ class PageModel(object):
         if region == None:
             return {'title':'', 'content':[]}
         region_html = lxml.html.tostring(region)
-        region_html = clean_tags_only(region_html, "(a|!)")
-        region_html = clean_tags_exactly(region_html, "(b|strong|br)")
+        region_html = clean_tags_only(region_html, "(a|!|strong)")
+        region_html = clean_tags_exactly(region_html, "(b|br)")
         clean_region = lxml.html.fromstring(region_html)
         content = self.extract_content(clean_region)
         return {"title":title , "content": content}
