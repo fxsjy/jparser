@@ -13,7 +13,7 @@ class PageModel(object):
         for tag in ['style','script']:
             page = clean_tags(page, tag)
         page = clean_tags_hasprop(page, "div", "(display:.?none|comment|measure)")
-        page = clean_tags_only(page, "(span|section|ol|li|font|em)")
+        page = clean_tags_only(page, "(span|section|font|em)")
         self.doc = lxml.html.fromstring(page)
         self.url = url
         self.region = Region(self.doc)
