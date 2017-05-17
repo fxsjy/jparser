@@ -7,7 +7,7 @@ except ImportError:
 setup(
     name='jparser',
     author="Sun, Junyi",
-    version='0.0.10',
+    version='0.0.11',
     license='MIT',
 
     packages=["jparser"],
