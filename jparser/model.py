@@ -17,9 +17,11 @@ class PageModel(object):
         self.doc = lxml.html.fromstring(page)
         self.url = url
         self.region = Region(self.doc)
+        self.impurity_threshold = 30
+        self.stripper = re.compile(r'\s+')
 
     def extract_content(self, region):
-        items = region.xpath('//p/text()|//div/text()|//table|.//img')
+        items = region.xpath('.//text()|.//table|.//img')
         tag_hist = {}
         for item in items:
             if  hasattr(item,'tag'):
@@ -35,7 +37,10 @@ class PageModel(object):
         for item in items:
             if not hasattr(item,'tag'):
                 txt = item.strip()
-                if item.getparent().tag != winner_tag:
+                parent_tag = item.getparent().tag
+                if  parent_tag != winner_tag \
+                    and len(self.stripper.sub("",txt)) < self.impurity_threshold \
+                    and parent_tag != 'li':
                     continue
                 contents.append({"type":"text","data":txt})
             elif item.tag == 'table':
@@ -64,7 +69,7 @@ class PageModel(object):
         s_tag_title = "".join(tag_title)
         for p in t_list:
             p = p.strip()
-            if s_tag_title.startswith(p) or s_tag_title.endswith(p):
+            if p!="" and s_tag_title.startswith(p) or s_tag_title.endswith(p):
                 return p
         s_tag_title = "".join(re.split(r'_|-\s',s_tag_title)[:1])
         return s_tag_title
@@ -74,10 +79,15 @@ class PageModel(object):
         region = self.region.locate()
         if region == None:
             return {'title':'', 'content':[]}
-        region_html = lxml.html.tostring(region)
-        region_html = clean_tags_only(region_html, "(a|!|strong)")
-        region_html = clean_tags_exactly(region_html, "(b|br)")
-        clean_region = lxml.html.fromstring(region_html)
-        content = self.extract_content(clean_region)
+        rm_tag_set = set([])
+        rm_tree_set = set([])
+        for el in region.xpath("//li/a"):
+            rm_tree_set.add(el.getparent())
+        for el in region.xpath("//a|//strong|//br|//b"):
+            rm_tag_set.add(el)
+        for el in rm_tree_set:
+            el.drop_tree()
+        for el in rm_tag_set:
+            el.drop_tag()
+        content = self.extract_content(region)
         return {"title":title , "content": content}
-
