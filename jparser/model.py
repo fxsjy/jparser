@@ -63,6 +63,7 @@ class PageModel(object):
         t_list = doc.xpath("//h1/text()")
         s_tag_title = "".join(tag_title)
         for p in t_list:
+            p = p.strip()
             if s_tag_title.startswith(p) or s_tag_title.endswith(p):
                 return p
         s_tag_title = "".join(re.split(r'_|-\s',s_tag_title)[:1])
