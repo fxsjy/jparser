@@ -1,6 +1,11 @@
 # jparser
 A robust parser which can extract title, content, images from html pages
 
+Install:
+
+    pip install jparser
+    requirement: lxml
+
 Usage Example:
 
     import urllib2
