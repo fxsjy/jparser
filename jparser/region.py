@@ -6,9 +6,10 @@ class Region(object):
 
     def __init__(self, doc):
         self.doc = doc
-        self.max_depth = 3
+        self.max_depth = 4
         self.region_ratios = (0.6, 0.75, 1.0)
         self.min_sentence_len = 15
+        self.max_sub_div_len = 10
         self.window_size = 2
         self.candidates_count = 3
         self.stripper = re.compile(r'\s+')
@@ -23,7 +24,7 @@ class Region(object):
         p1 = k1.getparent()
         depth = 1
         while p1!= None and p1.tag != 'html' and p1.tag != 'body':
-            if p1.tag in ('span','font','li','ul','td','tr'):
+            if p1.tag in ('span','font','li','ul','td','tr','br'):
                 p1 = p1.getparent()
                 continue
             if p1.tag == 'p':
@@ -61,4 +62,8 @@ class Region(object):
         neighbours.sort(key = lambda x: -1*abs(x[2] - n1))
         k2 = neighbours[0][1]
         region = self.find_common_parent(k1, k2)
+        sub_div_count =  len(region.xpath('./div'))
+        sub_p_count =  len(region.xpath('./p'))
+        if sub_div_count > self.max_sub_div_len and sub_div_count > sub_p_count:
+            return k1.getparent().getparent()
         return region
