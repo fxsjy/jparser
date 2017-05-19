@@ -83,7 +83,7 @@ class PageModel(object):
         rm_tree_set = set([])
         for el in region.xpath("//li/a"):
             rm_tree_set.add(el.getparent())
-        for el in region.xpath("//a|//strong|//br|//b"):
+        for el in region.xpath("//a|//strong|//b"):
             rm_tag_set.add(el)
         for el in rm_tree_set:
             el.drop_tree()
