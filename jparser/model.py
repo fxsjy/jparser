@@ -51,7 +51,7 @@ class PageModel(object):
                     for sub_item in item.xpath("//td/text()"):
                         contents.append({"type":"text","data":sub_item})
             elif item.tag == 'img':
-                for img_prop in ('original', 'src', 'data-original', 'src-info', 'file','data-src'):
+                for img_prop in ('original', 'file', 'data-original', 'src-info', 'data-src', 'src'):
                     src =  item.get(img_prop)
                     if src != None:
                         break
