@@ -21,7 +21,7 @@ class PageModel(object):
         self.stripper = re.compile(r'\s+')
 
     def extract_content(self, region):
-        items = region.xpath('.//text()|.//table|.//img')
+        items = region.xpath('.//text()|./table|.//img')
         tag_hist = {}
         for item in items:
             if  hasattr(item,'tag'):
