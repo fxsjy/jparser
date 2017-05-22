@@ -18,6 +18,7 @@ class PageModel(object):
         self.url = url
         self.region = Region(self.doc)
         self.impurity_threshold = 30
+        self.anchor_ratio_limit = 0.3
         self.stripper = re.compile(r'\s+')
 
     def extract_content(self, region):
@@ -45,6 +46,8 @@ class PageModel(object):
                 contents.append({"type":"text","data":txt})
             elif item.tag == 'table':
                 if item != region:
+                    for el in item.xpath(".//a"):
+                        el.drop_tag()
                     table_s = lxml.html.tostring(item)
                     contents.append({"type":"html","data":table_s})
                 else:
@@ -80,13 +83,16 @@ class PageModel(object):
         if region == None:
             return {'title':'', 'content':[]}
         rm_tag_set = set([])
-        rm_tree_set = set([])
-        for el in region.xpath("//li/a"):
-            rm_tree_set.add(el.getparent())
-        for el in region.xpath("//a|//strong|//b"):
+        for p_el in region.xpath(".//p|.//li"):
+            child_links = p_el.xpath(".//a/text()")
+            count_p = len(" ".join(p_el.xpath(".//text()")))
+            count_a = len(" ".join(child_links))
+            if float(count_a) / (count_p + 1.0) > self.anchor_ratio_limit:
+                p_el.drop_tree()
+        for el in region.xpath(".//a"):
             rm_tag_set.add(el)
-        for el in rm_tree_set:
-            el.drop_tree()
+        for el in region.xpath(".//strong|//b"):
+            rm_tag_set.add(el)
         for el in rm_tag_set:
             el.drop_tag()
         content = self.extract_content(region)
