@@ -61,7 +61,7 @@ class PageModel(object):
                     if src != None:
                         break
                 if self.url != "":
-                    if not src.startswith("/") and not src.startswith("http"):
+                    if not src.startswith("/") and not src.startswith("http") and not src.startswith("./"):
                         src = "/" + src
                     src = urlparse.urljoin(self.url, src, False)
                 contents.append({"type":"image","data":{"src": src}})    
