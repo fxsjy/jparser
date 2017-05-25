@@ -22,7 +22,7 @@ class PageModel(object):
         self.stripper = re.compile(r'\s+')
 
     def extract_content(self, region):
-        items = region.xpath('.//text()|./table|.//img')
+        items = region.xpath('.//text()|.//img|./table')
         tag_hist = {}
         for item in items:
             if  hasattr(item,'tag'):
@@ -45,6 +45,8 @@ class PageModel(object):
                     continue
                 contents.append({"type":"text","data":txt})
             elif item.tag == 'table':
+                if winner_tag == 'td':
+                    continue
                 if item != region:
                     for el in item.xpath(".//a"):
                         el.drop_tag()
@@ -59,7 +61,9 @@ class PageModel(object):
                     if src != None:
                         break
                 if self.url != "":
-                    src = urlparse.urljoin(self.url, src)
+                    if not src.startswith("/") and not src.startswith("http"):
+                        src = "/" + src
+                    src = urlparse.urljoin(self.url, src, False)
                 contents.append({"type":"image","data":{"src": src}})    
             else:
                 pass   
@@ -68,14 +72,14 @@ class PageModel(object):
     def extract_title(self):
         doc = self.doc
         tag_title = doc.xpath("/html/head/title/text()")
-        t_list = doc.xpath("//h1/text()")
-        s_tag_title = "".join(tag_title)
-        for p in t_list:
-            p = p.strip()
-            if p!="" and s_tag_title.startswith(p) or s_tag_title.endswith(p):
-                return p
-        s_tag_title = "".join(re.split(r'_|-\s',s_tag_title)[:1])
-        return s_tag_title
+        s_tag_title = "".join(re.split(r'_|-',"".join(tag_title))[:1])
+        title_candidates = doc.xpath('//h1/text()|//h2/text()|//h3/text()|//p[@class="title"]/text()')
+        for c_title in title_candidates:
+            c_title = c_title.strip()
+            if c_title!="" and (s_tag_title.startswith(c_title) or s_tag_title.endswith(c_title)):
+                return c_title
+        sort_by_len_list = sorted((-1*len(x.strip()),x) for x in ([s_tag_title] + title_candidates))
+        return sort_by_len_list[0][1]
 
     def extract(self):
         title = self.extract_title()
