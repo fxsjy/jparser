@@ -41,7 +41,7 @@ class Region(object):
 
     def locate(self):
         p_list = self.doc.xpath('//p/text()|//div/text()|//td/text()')
-        unimportant_texts = set(self.doc.xpath("//a/text()|//dd//text()|//blockquote//text()"))
+        unimportant_texts = set(self.doc.xpath("//a/text()|//dd//text()"))
         N_p = len(p_list)
         window_size = self.window_size
         for region_ratio in self.region_ratios:
