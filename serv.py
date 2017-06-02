@@ -23,7 +23,10 @@ def parser():
             url = url.strip()
             headers={'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'}
             rsps = requests.get(url, headers = headers)
-            page = rsps.content.decode(rsps.apparent_encoding,'ignore') 
+            try:
+                page = rsps.content.decode('utf-8') 
+            except:
+                page = rsps.content.decode('gb18030','ignore')
         else:
             page = request.form.get("html_content")
         t2 = time.time()
@@ -33,7 +36,7 @@ def parser():
     except:
         traceback.print_exc()
         return "download url failed"
-    return render_template("result.html", data = result['content'], title = result['title'], json_s = json.dumps(result),
+    return render_template("result.html", data = result['content'], title = result['title'], json_s = json.dumps(result, indent = 4),
                            download_cost = t2 - t1, extract_cost = t3 - t2)
     
 if __name__ == "__main__":

@@ -43,6 +43,8 @@ class PageModel(object):
                     and len(self.stripper.sub("",txt)) < self.impurity_threshold \
                     and parent_tag != 'li':
                     continue
+                if txt == "":
+                    continue
                 contents.append({"type":"text","data":txt})
             elif item.tag == 'table':
                 if winner_tag == 'td':
