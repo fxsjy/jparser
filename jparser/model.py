@@ -12,7 +12,11 @@ from .region import Region
 
 class PageModel(object):
     def __init__(self, page, url = ""):
-        assert type(page) is unicode
+        try:
+            assert type(page) is unicode
+        # Python3
+        except NameError:
+            pass
         for tag in ['style','script']:
             page = clean_tags(page, tag)
         page = clean_tags_hasprop(page, "div", "(display:.?none|comment|measure)")
