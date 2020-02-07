@@ -40,7 +40,7 @@ class PageModel(object):
             tag_hist[t] += len(item.strip())
         winner_tag = None
         if len(tag_hist) > 0:
-            winner_tag = max((cx, kx) for kx, cx in tag_hist.items())[1]
+            winner_tag = max((c,k) for k,c in tag_hist.items())[1]
         contents = []
         for item in items:
             if not hasattr(item,'tag'):
