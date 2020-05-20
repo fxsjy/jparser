@@ -17,13 +17,13 @@ class Region(object):
     def find_common_parent(self, k1, k2):
         all_parent = []
         p = k2.getparent()
-        while p!= None and p.tag != 'html' and p.tag != 'body':
+        while p is not None and p.tag != 'html' and p.tag != 'body':
             if p.tag != 'a':
                 all_parent.append(p)
             p = p.getparent()
         p1 = k1.getparent()
         depth = 1
-        while p1!= None and p1.tag != 'html' and p1.tag != 'body':
+        while p1 is not None and p1.tag != 'html' and p1.tag != 'body':
             if p1.tag in ('span','font','li','ul','td','tr','br'):
                 p1 = p1.getparent()
                 continue
