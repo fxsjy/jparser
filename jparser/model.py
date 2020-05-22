@@ -3,18 +3,29 @@
 import re
 import lxml
 import lxml.html
-import urlparse
-from .tags_util import clean_tags_only, clean_tags_hasprop, clean_tags_exactly, clean_tags
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+from .tags_util import clean_tags_only, clean_tags_hasprop, clean_tags_exactly, clean_tags, pick_listed_tags, clean_ainp_tags
 from .region import Region
 
 class PageModel(object):
-    def __init__(self, page, url = ""):
-        assert type(page) is unicode
-        for tag in ['style','script']:
+    def __init__(self, page, url=""):
+        try:
+            assert type(page) is unicode
+        except NameError:
+            pass
+        for tag in ['style','script','sup','noscript']:
             page = clean_tags(page, tag)
+        self.otherlists = []
+        for tag in ['section']:
+            lres = pick_listed_tags(page, tag)
+            self.otherlists.extend(lres)
         page = clean_tags_hasprop(page, "div", "(display:.?none|comment|measure)")
-        page = clean_tags_only(page, "(span|section|font|em)")
+        page = clean_tags_only(page, "(span|section|font|em|i)")
         self.doc = lxml.html.fromstring(page)
+        self.doc = clean_ainp_tags(self.doc, 'a')
         self.url = url
         self.region = Region(self.doc)
         self.impurity_threshold = 30
@@ -22,7 +33,9 @@ class PageModel(object):
         self.stripper = re.compile(r'\s+')
 
     def extract_content(self, region):
-        items = region.xpath('.//text()|.//img|./table')
+        for item in self.otherlists:
+            region.append(item)
+        items = region.xpath('.//text()|.//img|./table|./aside|//section')
         tag_hist = {}
         for item in items:
             if  hasattr(item,'tag'):
@@ -43,11 +56,20 @@ class PageModel(object):
                     and len(self.stripper.sub("",txt)) < self.impurity_threshold \
                     and parent_tag != 'li':
                     continue
-                if txt == "":
-                    continue
                 contents.append({"type":"text","data":txt})
+            elif item.tag == 'section':
+                if item != region:
+                    for el in item.xpath(".//a"):
+                        el.drop_tag()
+                    table_s = lxml.html.tostring(item)
+                    contents.append({"type":"html","data":table_s})
+                else:
+                    for sub_item in item.xpath("//div/text()"):
+                        contents.append({"type":"text","data":sub_item})
             elif item.tag == 'table':
                 if winner_tag == 'td':
+                    continue
+                if item.xpath(".//p"):
                     continue
                 if item != region:
                     for el in item.xpath(".//a"):
@@ -57,15 +79,21 @@ class PageModel(object):
                 else:
                     for sub_item in item.xpath("//td/text()"):
                         contents.append({"type":"text","data":sub_item})
+            elif item.tag == 'aside':
+                if item != region:
+                    for el in item.xpath(".//a"):
+                        el.drop_tag()
+                    aside_s = lxml.html.tostring(item)
+                    contents.append({"type":"html","data":aside_s})
             elif item.tag == 'img':
                 for img_prop in ('original', 'file', 'data-original', 'src-info', 'data-src', 'src'):
                     src =  item.get(img_prop)
-                    if src != None:
+                    if src is not None:
                         break
                 if self.url != "":
                     if not src.startswith("/") and not src.startswith("http") and not src.startswith("./"):
                         src = "/" + src
-                    src = urlparse.urljoin(self.url, src, False)
+                    src = urllib.parse.urljoin(self.url, src, False)
                 contents.append({"type":"image","data":{"src": src}})    
             else:
                 pass   
@@ -81,12 +109,15 @@ class PageModel(object):
             if c_title!="" and (s_tag_title.startswith(c_title) or s_tag_title.endswith(c_title)):
                 return c_title
         sort_by_len_list = sorted((-1*len(x.strip()),x) for x in ([s_tag_title] + title_candidates))
-        return sort_by_len_list[0][1]
+        restitle = sort_by_len_list[0][1]
+        if type(restitle)!=str:
+            restitle = s_tag_title
+        return restitle
 
     def extract(self):
         title = self.extract_title()
         region = self.region.locate()
-        if region == None:
+        if region is None:
             return {'title':'', 'content':[]}
         rm_tag_set = set([])
         for p_el in region.xpath(".//p|.//li"):
