@@ -35,7 +35,7 @@ class PageModel(object):
     def extract_content(self, region):
         for item in self.otherlists:
             region.append(item)
-        items = region.xpath('.//text()|.//img|./table|./aside|//section')
+        items = region.xpath('.//text()|.//img|./table|//aside')
         tag_hist = {}
         for item in items:
             if  hasattr(item,'tag'):
@@ -56,16 +56,9 @@ class PageModel(object):
                     and len(self.stripper.sub("",txt)) < self.impurity_threshold \
                     and parent_tag != 'li':
                     continue
+                if txt == "":
+                    continue
                 contents.append({"type":"text","data":txt})
-            elif item.tag == 'section':
-                if item != region:
-                    for el in item.xpath(".//a"):
-                        el.drop_tag()
-                    table_s = lxml.html.tostring(item)
-                    contents.append({"type":"html","data":table_s})
-                else:
-                    for sub_item in item.xpath("//div/text()"):
-                        contents.append({"type":"text","data":sub_item})
             elif item.tag == 'table':
                 if winner_tag == 'td':
                     continue
@@ -80,6 +73,8 @@ class PageModel(object):
                     for sub_item in item.xpath("//td/text()"):
                         contents.append({"type":"text","data":sub_item})
             elif item.tag == 'aside':
+                if not item.xpath(".//dl"):
+                    continue
                 if item != region:
                     for el in item.xpath(".//a"):
                         el.drop_tag()
